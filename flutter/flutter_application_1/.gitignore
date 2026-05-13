@@ -33,6 +33,12 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Secrets — Supabase URL + anon key live here, never commit.
+# Use .env.example as the template for what each dev needs locally.
+.env
+.env.local
+.env.*.local
+
 # Symbolication related
 app.*.symbols
 

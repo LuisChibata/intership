@@ -35,6 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Supabase client for Flutter — auth + DB + RLS-aware queries.
+  # Used in Phase 4 onward; added in Phase 0 so pub get is locked in early.
+  supabase_flutter: ^2.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
