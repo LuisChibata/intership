@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Stats — Church Data Workspace</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  #root { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="variant-a.jsx"></script>
+<script type="text/babel" src="variant-b.jsx"></script>
+
+<script type="text/babel">
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "role": "leader",
+  "density": "comfortable"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [role, setRole] = React.useState(TWEAKS.role);
+  const [density, setDensity] = React.useState(TWEAKS.density);
+  const [tweaksOn, setTweaksOn] = React.useState(false);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      if (!e.data) return;
+      if (e.data.type === '__activate_edit_mode') setTweaksOn(true);
+      if (e.data.type === '__deactivate_edit_mode') setTweaksOn(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  function persist(edits) {
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+  }
+  function setRolePersist(r) { setRole(r); persist({ role: r }); }
+  function setDensityPersist(d) { setDensity(d); persist({ density: d }); }
+
+  return (
+    <>
+      <DesignCanvas>
+        <DCSection id="variants" title="Stats · Church Data Management" subtitle="Three hi-fi directions. Click an artboard's title or the expand icon to focus it. Tweaks control role + density live.">
+          <DCArtboard id="a" label="A · Linear workspace" width={1280} height={900}>
+            <VariantA role={role} density={density} />
+          </DCArtboard>
+          <DCArtboard id="b" label="B · Notion database" width={1280} height={900}>
+            <VariantB role={role} density={density} />
+          </DCArtboard>
+        </DCSection>
+
+        <DCPostIt top={120} left={60} rotate={-3} width={200}>
+          Variants A + B share a neutral palette &amp; density.
+        </DCPostIt>
+        <DCPostIt top={240} left={60} rotate={2} width={200}>
+          Toggle Tweaks → switch Member/Leader/Admin + row density live across all three.
+        </DCPostIt>
+      </DesignCanvas>
+
+      {tweaksOn && (
+        <div style={{
+          position: 'fixed', right: 16, bottom: 16, zIndex: 200,
+          background: '#fff', borderRadius: 10, border: '1px solid #e4e4e7',
+          boxShadow: '0 12px 40px rgba(0,0,0,.15)', padding: 14, width: 240,
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#52525b', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 10 }}>Tweaks</div>
+
+          <div style={{ fontSize: 11, color: '#71717a', marginBottom: 6, fontWeight: 500 }}>Viewing as</div>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 14, background: '#f4f4f5', padding: 3, borderRadius: 7 }}>
+            {['member', 'leader', 'admin'].map(r => (
+              <button key={r} onClick={() => setRolePersist(r)} style={{
+                flex: 1, padding: '5px 0', fontSize: 11.5, fontWeight: 500, textTransform: 'capitalize',
+                border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit',
+                background: role === r ? '#fff' : 'transparent',
+                color: role === r ? '#0b0b0f' : '#71717a',
+                boxShadow: role === r ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
+              }}>{r}</button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 11, color: '#71717a', marginBottom: 6, fontWeight: 500 }}>Density</div>
+          <div style={{ display: 'flex', gap: 4, background: '#f4f4f5', padding: 3, borderRadius: 7 }}>
+            {['compact', 'comfortable', 'spacious'].map(d => (
+              <button key={d} onClick={() => setDensityPersist(d)} style={{
+                flex: 1, padding: '5px 0', fontSize: 11.5, fontWeight: 500, textTransform: 'capitalize',
+                border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit',
+                background: density === d ? '#fff' : 'transparent',
+                color: density === d ? '#0b0b0f' : '#71717a',
+                boxShadow: density === d ? '0 1px 2px rgba(0,0,0,.06)' : 'none',
+              }}>{d}</button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 10.5, color: '#a1a1aa', marginTop: 12, lineHeight: 1.4 }}>
+            Member = read-only · Leader/Admin can inline-edit and add BTs.
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
