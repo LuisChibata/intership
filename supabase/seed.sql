@@ -115,3 +115,21 @@ insert into policies (principal_id, permission, resource_id) values
   ('bbb00000-0000-0000-0000-000000000001', 'stats.read',   'aaa00000-0000-0000-0000-000000000001'), -- Church Ldr -> read Church
   ('bbb00000-0000-0000-0000-00000000000a', 'stats.write',  'aaa00000-0000-0000-0000-00000000000a'), -- Sector A Ldr -> write Sector A
   ('11111111-1111-1111-1111-111111111111', 'stats.delete', 'aaa00000-0000-0000-0000-0000000000a1'); -- Joe (user) -> delete BT 1
+
+------------------------------------------------------------------------------
+-- Phase 3 — Grantor setup for the can_grant / grant_permission test cases.
+--
+-- Joe gets stats.write + grant directly on Sector A. That's the minimum
+-- to test the grant rules:
+--
+--   - With grant + stats.write, Joe can hand stats.write to anyone on
+--     Sector A or any resource under it (verification case 3).
+--   - WITHOUT grant-grant, attempting to delegate 'grant' itself must
+--     fail (verification case 4).
+--   - Verification case 5 adds grant-grant to Joe at test time, so we
+--     deliberately don't seed it here.
+------------------------------------------------------------------------------
+
+insert into policies (principal_id, permission, resource_id) values
+  ('11111111-1111-1111-1111-111111111111', 'stats.write', 'aaa00000-0000-0000-0000-00000000000a'), -- Joe -> write Sector A
+  ('11111111-1111-1111-1111-111111111111', 'grant',       'aaa00000-0000-0000-0000-00000000000a'); -- Joe -> grant Sector A
