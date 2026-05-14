@@ -220,7 +220,7 @@ If all three are clean, the system is in the "properly coded" state the plan pro
 
 ---
 
-## 7. When you feel lost again
+## 7. Summary
 
 In rough order:
 
