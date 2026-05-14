@@ -98,3 +98,20 @@ select create_app_user('22222222-2222-2222-2222-222222222222', 'User Two');
 
 insert into principal_members (parent_id, member_id) values
   ('bbb00000-0000-0000-0000-0000000000a1', '11111111-1111-1111-1111-111111111111');
+
+------------------------------------------------------------------------------
+-- Phase 2 — Test policies for the can() verification cases.
+--
+-- Three rows, each chosen to exercise one axis of the policy model:
+--   1. Group at the root with a domain perm     -> principal & resource
+--                                                  ancestry both walk.
+--   2. Group at a subtree with a domain perm    -> principal ancestry walks,
+--                                                  resource stays in subtree.
+--   3. Policy attached directly to a user       -> tests that user principals
+--      principal                                   participate without a group.
+------------------------------------------------------------------------------
+
+insert into policies (principal_id, permission, resource_id) values
+  ('bbb00000-0000-0000-0000-000000000001', 'stats.read',   'aaa00000-0000-0000-0000-000000000001'), -- Church Ldr -> read Church
+  ('bbb00000-0000-0000-0000-00000000000a', 'stats.write',  'aaa00000-0000-0000-0000-00000000000a'), -- Sector A Ldr -> write Sector A
+  ('11111111-1111-1111-1111-111111111111', 'stats.delete', 'aaa00000-0000-0000-0000-0000000000a1'); -- Joe (user) -> delete BT 1
