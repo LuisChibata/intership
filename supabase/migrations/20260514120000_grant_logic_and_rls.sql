@@ -163,3 +163,25 @@ create policy principal_members_authenticated_read
 
 create policy app_users_authenticated_read
   on app_users for select to authenticated using (true);
+
+------------------------------------------------------------------------------
+-- Lock down who can RPC-call grant_permission
+--
+--   Supabase grants EXECUTE on new public functions to PUBLIC by default,
+--   which means the anon role can hit POST /rest/v1/rpc/grant_permission
+--   without signing in. The function's own `must be authenticated` guard
+--   catches that, but defence-in-depth says don't expose a SECURITY
+--   DEFINER surface to anon at all.
+--
+--   authenticated KEEPS execute -- the Phase 5 client cache and the Phase 8
+--   grant UI both call this via RPC. service_role keeps it too for admin
+--   tooling. The advisor still warns about authenticated, but that's the
+--   intentional shape, not the accident.
+------------------------------------------------------------------------------
+
+-- Supabase grants EXECUTE to PUBLIC AND directly to anon/authenticated on
+-- new public functions, so revoking from PUBLIC alone leaves anon's direct
+-- grant in place. Revoke explicitly from both, then re-grant the roles we
+-- do want.
+revoke execute on function public.grant_permission(uuid, app_permission, uuid) from public, anon;
+grant  execute on function public.grant_permission(uuid, app_permission, uuid) to   authenticated, service_role;

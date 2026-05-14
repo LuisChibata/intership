@@ -602,7 +602,7 @@ These don't block Phase 0–5, but should be answered before Phase 6+:
 - [x] Phase 0 — Foundation
 - [x] Phase 1 — Resources and principals
 - [x] Phase 2 — Policies and `can()`
-- [ ] Phase 3 — Grant logic
+- [x] Phase 3 — Grant logic
 - [ ] Phase 4 — Flutter connects to Supabase
 - [ ] Phase 5 — Permission cache on the client
 - [ ] Phase 6 — Stats domain schema

@@ -162,16 +162,27 @@ select lives_ok(
   'Joe grants stats.write to User Two on BT 1'
 );
 
--- And the policy row is now in the table.
+-- Verify the row landed. Joe himself CAN'T see it via RLS -- the row's
+-- principal_id is User Two, who isn't in Joe's effective principals --
+-- so we briefly drop back to postgres for the bare-existence check, then
+-- re-enter Joe's identity for the rest of the section. (This is a real
+-- property of the system worth knowing: granting and observing are
+-- separate capabilities.)
+reset role;
+reset "request.jwt.claims";
+
 select ok(
   exists(
     select 1 from policies
     where principal_id = '22222222-2222-2222-2222-222222222222'
-      and permission   = 'stats.write'
+      and permission   = 'stats.write'::app_permission
       and resource_id  = 'aaa00000-0000-0000-0000-0000000000a1'
   ),
   'grant_permission inserted the expected policy row'
 );
+
+set local role authenticated;
+set local "request.jwt.claims" to '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
 
 -- Calling grant_permission again with the same triple returns null --
 -- the on-conflict clause swallows the duplicate without raising.
@@ -185,24 +196,27 @@ select is(
 );
 
 -- Joe cannot delegate `grant` itself -- he lacks grant-grant.
-select throws_ok(
+-- Use throws_like because the error message includes the resource UUID
+-- and permission as a variable suffix ("not authorized to grant grant
+-- on <uuid>"); throws_ok requires exact match.
+select throws_like(
   $$ select grant_permission(
        '22222222-2222-2222-2222-222222222222'::uuid,
        'grant'::app_permission,
        'aaa00000-0000-0000-0000-0000000000a1'::uuid) $$,
-  'not authorized',
+  '%not authorized%',
   'Joe without grant-grant cannot delegate `grant`'
 );
 
 -- Switch to User Two -- has no permissions anywhere.
 set local "request.jwt.claims" to '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
 
-select throws_ok(
+select throws_like(
   $$ select grant_permission(
        '11111111-1111-1111-1111-111111111111'::uuid,
        'stats.read'::app_permission,
        'aaa00000-0000-0000-0000-0000000000a1'::uuid) $$,
-  'not authorized',
+  '%not authorized%',
   'User Two cannot grant anything (no perms)'
 );
 
