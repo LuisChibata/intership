@@ -1,1 +1,1 @@
-Adding a sample READ ME file to check GITHUB
+Read system architecture in docs
