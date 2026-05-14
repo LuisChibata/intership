@@ -38,47 +38,47 @@ graph LR
 
 ```mermaid
 erDiagram
-  resources ||--o{ resources         : "parent_id (self-tree)"
-  principals ||--o{ principal_members : "as parent"
-  principals ||--o{ principal_members : "as member"
-  principals ||--|| app_users         : "same id (user-principals)"
-  auth_users ||--|| app_users         : "same id (auth link)"
-  principals ||--o{ policies          : "principal_id"
-  resources  ||--o{ policies          : "resource_id"
-  app_users  ||--o{ policies          : "granted_by"
+  resources         ||--o{ resources         : "self-parent"
+  principals        ||--o{ principal_members : "as parent"
+  principals        ||--o{ principal_members : "as member"
+  principals        ||--|| app_users         : "shared id"
+  auth_users        ||--|| app_users         : "shared id"
+  principals        ||--o{ policies          : "principal_id"
+  resources         ||--o{ policies          : "resource_id"
+  app_users         ||--o{ policies          : "granted_by"
 
   resources {
-    uuid id PK
-    resource_type type "church|sector|bible_talk"
-    uuid parent_id FK "nullable; null = root"
-    text name
-    timestamptz created_at
+    uuid          id          PK
+    resource_type type            "church sector or bible_talk"
+    uuid          parent_id   FK  "nullable, null means root"
+    text          name
+    timestamptz   created_at
   }
   principals {
-    uuid id PK
-    principal_kind kind "user|group"
-    text name
-    timestamptz created_at
+    uuid           id          PK
+    principal_kind kind            "user or group"
+    text           name
+    timestamptz    created_at
   }
   principal_members {
-    uuid parent_id PK_FK
-    uuid member_id PK_FK "check: parent != member"
+    uuid parent_id PK
+    uuid member_id PK              "parent and member must differ"
   }
   app_users {
-    uuid id PK_FK "= principals.id = auth.users.id"
-    text display_name
+    uuid        id           PK   "same id as principals and auth users"
+    text        display_name
     timestamptz created_at
   }
   policies {
-    uuid id PK
-    uuid principal_id FK
-    app_permission permission "6 values: stats.* + grant + grant-grant"
-    uuid resource_id FK
-    uuid granted_by FK "nullable; audit only"
-    timestamptz granted_at
+    uuid           id           PK
+    uuid           principal_id FK
+    app_permission permission        "stats.read write create delete plus grant plus grant-grant"
+    uuid           resource_id  FK
+    uuid           granted_by   FK   "nullable, audit only"
+    timestamptz    granted_at
   }
   auth_users {
-    uuid id PK "Supabase-managed"
+    uuid id     PK                   "Supabase managed"
     text email
     text encrypted_password
   }
